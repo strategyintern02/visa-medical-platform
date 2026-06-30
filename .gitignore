@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+
+# Backups / scratch
+*.bak
+*.tmp
+*.orig
+
+# Env / secrets — never commit Gist tokens or anything like them
+.env
+.env.*
+!.env.example
+
+# Claude Code local settings (machine-specific paths/permissions)
+.claude/settings.local.json
+
+# Source reference documents (PDFs/XLSX/archived dashboard) — kept out of the
+# repo to stay lean; they are not served by the app. See README.
+reference/
+
+# Logs
+*.log
+npm-debug.log*
+
+# OS junk
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# IDE
+.vscode/
+.idea/
+*.swp

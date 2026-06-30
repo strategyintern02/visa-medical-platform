@@ -1,0 +1,14 @@
+{
+  "name": "visa-medical-platform",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Visa Medical Platform — visa medical centre map + medical test requirements",
+  "main": "server/api.js",
+  "engines": { "node": ">=18.0.0" },
+  "scripts": {
+    "start": "node server/api.js"
+  },
+  "dependencies": {
+    "express": "^4.18.2"
+  }
+}

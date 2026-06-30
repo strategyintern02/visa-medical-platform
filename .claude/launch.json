@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "visa-platform",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["server/api.js"],
+      "port": 3000
+    }
+  ]
+}
