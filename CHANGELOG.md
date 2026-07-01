@@ -2,6 +2,21 @@
 
 All notable changes to this project, newest first.
 
+## Unreleased — 2026-07-01
+
+- **Dark mode for the Test Requirements dashboard (restored).** Re-added the dark mode
+  the standalone dashboard originally had, scoped to `#viewTests` only. A 🌙/☀️ toggle
+  in the test-view header calls `MT.toggleTheme()`, which sets `data-theme="dark"` on
+  `<html>` and persists it in `localStorage` (`medDashTheme`). All dark rules are
+  `[data-theme="dark"] #viewTests …` — higher specificity than the light rules, so the
+  Centre Map view and shared topbar stay light (verified: switching to the map with dark
+  active shows no leak). Adds a dark token palette plus overrides for the handful of
+  hardcoded light colours (fu-info, tt-chip, op-new-tag, outsourced badge, insight
+  cards, heatmap req/fu squares). Also made the test-view shell grow with its content
+  (`#app.view-tests { height:auto }`) so the dark background covers the full scroll
+  height instead of just the first screen (the content used to overflow the 100vh grid
+  track onto the light page canvas). (`public/index.html`)
+
 ## Unreleased — 2026-06-30
 
 - **Unified the two views into one visual system.** The Centre Map and Test

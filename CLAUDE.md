@@ -56,9 +56,15 @@ The dashboard was inlined but kept fully isolated so it can't collide with the m
   `window.MT = { setMode, toggleCountry, showDetail, _render, … }`. Inline handlers
   in the test-view markup call `MT.*`. Don't add bare globals (the map app has its
   own `render`, `setTab`, etc.).
-- **No dark mode here:** the standalone dashboard's dark-mode toggle was dropped
-  (the map app is light-only). Don't reintroduce a per-view toggle; if dark mode is
-  wanted, unify it across both views.
+- **Dark mode — Test Requirements view ONLY (restored 2026-07-01).** The standalone
+  dashboard's dark mode is back, scoped to `#viewTests`. `toggleTheme()` (exposed as
+  `MT.toggleTheme`, wired to the `#themeToggle` button in the test-view header) sets
+  `data-theme="dark"` on `<html>` and persists it in `localStorage` (`medDashTheme`).
+  Every dark rule is scoped `[data-theme="dark"] #viewTests …`, which outranks the
+  light rules on specificity — so the attribute is global but the effect is not, and
+  the Centre Map + shared topbar stay light. When adding test-view CSS with a hardcoded
+  light colour (not a `--token`), add a matching `[data-theme="dark"] #viewTests …`
+  override. The map app itself stays light-only; don't add a dark theme there unless asked.
 
 ### Test-requirements data model (inline, in the `MT` IIFE)
 
