@@ -42,6 +42,14 @@ a deferred `resize` (rAF + setTimeout) so Leaflet re-tiles — its container had
 
 The dashboard was inlined but kept fully isolated so it can't collide with the map app:
 
+> **Design note (2026-06-30):** the map's `:root` palette was unified *up* to the Test
+> view's modern look — shared blue `--accent` (#2563EB), Inter font, rounded surfaces.
+> The topbar's dark colour now lives in its own `--header` token (it used to reuse
+> `--accent`, which is why changing the accent no longer turns the topbar blue). The two
+> views remain structurally isolated (their tokens can still diverge); they just share the
+> same accent now. See the "MODERN BLUE THEME + INTERACTION POLISH" block at the end of
+> the `<style>` and the CHANGELOG.
+
 - **CSS:** every test-view rule is scoped under `#viewTests` (its design tokens
   live on `#viewTests`, not `:root`). Scope new test-view CSS the same way.
 - **JS:** all test-view logic is in one IIFE exposing only
@@ -88,7 +96,8 @@ Cross-jump wiring (both live in `public/index.html`):
 IIFE) builds a compact, single-destination card driven by `state.testDest`;
 `renderTestPane()` mounts it into `#paneTest` and is called from `update()`. It reads
 test data live via `MT.testsForDest(id)` (no duplicate copy) and is styled with `tc-*`
-classes in the map's own palette (native, not the blue dashboard). Chips call
+classes in the map's own `:root` tokens (unified to the modern blue palette on
+2026-06-30 — so the card now matches the dashboard rather than contrasting it). Chips call
 `VMP.setTestDest(id)`; the card's buttons reuse `bridgeToCentres()` (filter the map)
 and `switchView('tests')` (open the full matrix). Note the rail tab bar is a
 `repeat(4,1fr)` grid (`.rail-tabs`) so the 8 tabs wrap to two rows — add a 9th and it

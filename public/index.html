@@ -22,17 +22,20 @@
       /* secondary surface, hovers, table head */
       --bg-stripe: #fafbfd;
       /* zebra stripe */
-      --bg-accent-soft: #e7eef8;
-      /* selected / active subtle */
+      --bg-accent-soft: #eff6ff;
+      /* selected / active subtle (blue-tinted, matches Test view) */
       --border: #dde2ea;
       --border-strong: #c5cdd8;
       --text: #15202b;
       --text-2: #46535f;
       --muted: #6b7785;
       --muted-2: #9aa4b2;
-      --accent: #1f2937;
-      /* charcoal navy — topbar, primary buttons */
-      --accent-2: #2c3a4b;
+      --accent: #2563eb;
+      /* primary blue — interactive + active states (unified with Test view) */
+      --accent-2: #1d4ed8;
+      /* deeper blue — hover / pressed */
+      --header: #1f2937;
+      /* charcoal navy — topbar surface only (was --accent) */
       --link: #1d4ed8;
       /* Status palette — the ONLY colour signal in the UI */
       --st-active: #2f8a3e;
@@ -51,8 +54,9 @@
       --shadow-sm: 0 1px 1px rgba(15, 23, 42, .04), 0 1px 2px rgba(15, 23, 42, .04);
       --shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 2px 6px rgba(15, 23, 42, .06);
       --shadow-pop: 0 4px 14px rgba(15, 23, 42, .10);
-      --radius: 4px;
-      --font: 'Segoe UI', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+      --radius: 8px;
+      --radius-sm: 6px;
+      --font: 'Inter', 'Segoe UI', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
     }
 
     * {
@@ -113,7 +117,7 @@
     .topbar {
       display: flex;
       align-items: center;
-      background: var(--accent);
+      background: var(--header);
       color: #fff;
       padding: 0 16px;
       border-bottom: 1px solid #0b1220
@@ -425,6 +429,13 @@
       box-shadow: 0 2px 6px rgba(15, 23, 42, .18);
       cursor: pointer
     }
+
+    /* Cluster ring + count colour reflects the dominant status of the centres
+       inside it — same palette as the rail's status section (Active / New /
+       De-panelled). A partial-removal centre counts toward De-panelled. */
+    .cluster-marker.cm-active  { border-color: var(--st-active);  color: var(--st-active); }
+    .cluster-marker.cm-new     { border-color: var(--st-new);     color: var(--st-new); }
+    .cluster-marker.cm-depanel { border-color: var(--st-depanel); color: var(--st-depanel); }
 
     /* Leaflet overrides */
     .leaflet-popup-content-wrapper {
@@ -3138,9 +3149,87 @@
 #viewTests .mt-cl-btn { margin-left: auto; padding: 8px 16px; font-size: 12.5px; font-weight: 600; font-family: inherit; border: 1px solid var(--accent); border-radius: 100px; background: var(--accent); color: #fff; cursor: pointer; white-space: nowrap; transition: opacity .15s; }
 #viewTests .mt-cl-btn:hover { opacity: .88; }
 #viewTests .mt-cl-note { flex-basis: 100%; font-size: 11.5px; color: var(--text-muted); }
+
+/* =========================================================
+   MODERN BLUE THEME + INTERACTION POLISH  (2026-06-30)
+   Brings the Centre Map view up to the Test Requirements
+   "modern blue dashboard" look and adds shared micro-interactions
+   so switching tabs feels like one integrated system.
+   Map-side overrides only — #viewTests already has this look.
+   ========================================================= */
+
+/* ---- Topbar stays dark (its own --header token), rounded brand + buttons ---- */
+.brand-mark { border-radius: 7px; background: rgba(255,255,255,.07); }
+.btn-top { border-radius: 7px; transition: background .18s, border-color .18s, color .18s, transform .12s; }
+.btn-top:active { transform: translateY(1px); }
+
+/* ---- View switch: segmented control; the ACTIVE BUTTON is the pill (cross-fade).
+   (Earlier a separate 50%-wide sliding ::before was used, but the two labels are
+   different widths so a fixed 50% pill misaligned — letting the button be the pill
+   makes it always match, whatever the label length.) ---- */
+.view-switch {
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+  overflow: visible;
+}
+.view-switch button {
+  border: none;
+  background: transparent;
+  color: #c7d0dd;
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background-color .22s ease, color .22s ease, box-shadow .22s ease;
+}
+.view-switch button + button { border-left: none; }
+/* No background on hover — the old base rule painted a near-white box on the dark bar.
+   Keep switching simple: just a subtle text brighten, no fill. */
+.view-switch button:hover:not(.active) { background: transparent; color: #eef2f8; }
+.view-switch button.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(37,99,235,.4);
+}
+
+/* ---- Rounded, gently-lifting surfaces ---- */
+.rkpi { border-radius: 10px; transition: transform .14s ease, box-shadow .14s ease, border-color .14s ease; }
+.rkpi:hover { box-shadow: var(--shadow); }
+/* Map layer/region toolbar restored to its previous-version look exactly:
+   sharp corners, navy active button, and the original Segoe UI font (the rest of the
+   app uses Inter, but this toolbar is kept identical to the pre-redesign version). */
+.map-toolbar { font-family: 'Segoe UI', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif; }
+.tb-group { border-radius: 3px; }
+.tb-group .tb-btn { transition: background .15s, color .15s; }
+.tb-group .tb-btn.active { background: var(--header); }
+.filter-section { border-radius: 12px; box-shadow: var(--shadow-sm); }
+.map-legend { border-radius: 12px; }
+.btn { border-radius: 8px; transition: background .15s, border-color .15s, color .15s, transform .12s, box-shadow .15s; }
+.btn:hover { box-shadow: var(--shadow-sm); }
+.btn:active { transform: translateY(1px); }
+.btn-primary:hover { background: var(--accent-2); border-color: var(--accent-2); color: #fff; }
+.rail-tab { transition: color .15s, background .15s, border-color .15s; }
+
+/* ---- Leaflet zoom control: match the rounded card language ---- */
+.leaflet-bar { border-radius: 8px; overflow: hidden; box-shadow: var(--shadow); }
+.leaflet-bar a { transition: background .15s; }
+
+/* ---- Cross-view transition: gentle fade/rise when a view becomes active ---- */
+@keyframes viewIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+#app.view-tests #viewTests { animation: viewIn .32s cubic-bezier(.4,0,.2,1) both; }
+#app:not(.view-tests) .body { animation: fadeIn .28s ease both; }
+@media (prefers-reduced-motion: reduce) {
+  .view-switch::before,
+  #app.view-tests #viewTests,
+  #app:not(.view-tests) .body { animation: none; transition: none; }
+}
 </style>
 <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
 <body>
@@ -3162,8 +3251,8 @@
         <div class="brand-sub">Centre map + test requirements · v1.0</div>
       </div>
       <div class="view-switch" role="group" aria-label="View">
-          <button class="active" data-view="map">🗺️ Centre Map</button>
-          <button data-view="tests">🧪 Test Requirements</button>
+          <button class="active" data-view="map">Centre Map</button>
+          <button data-view="tests">Test Requirements</button>
         </div>
         <div class="topbar-kpis" id="topKpis"></div>
       <div class="topbar-actions">
@@ -3599,10 +3688,20 @@
           iconCreateFunction: cluster => {
             const n = cluster.getChildCount();
             const size = n > 100 ? 44 : n > 30 ? 38 : 32;
+            // Aggregate the status of every centre inside this cluster, then colour
+            // the ring by whichever status dominates (partial removal → De-panelled).
+            let a = 0, nw = 0, d = 0;
+            cluster.getAllChildMarkers().forEach(m => {
+              const s = m._sc;
+              if (s) { a += s.active; nw += s.new; d += s.dep + s.partial; }
+            });
+            const mx = Math.max(a, nw, d);
+            let cls = 'cm-active';
+            if (mx > 0) { if (d === mx) cls = 'cm-depanel'; else if (nw === mx) cls = 'cm-new'; }
             return L.divIcon({
               className: '',
               iconSize: [size, size],
-              html: `<div class="cluster-marker" style="width:${size}px;height:${size}px">${n}</div>`
+              html: `<div class="cluster-marker ${cls}" style="width:${size}px;height:${size}px">${n}</div>`
             });
           }
         });
@@ -3698,6 +3797,7 @@
             const m = L.marker([g.lat, g.lng], { icon, title: `${g.city}, ${g.country}` });
             m.bindPopup(() => cityPopupHTML(g), { maxWidth: 380, minWidth: 280, autoPanPadding: [40, 40] });
             m._cityKey = k;
+            m._sc = { active: nActive, new: nNew, partial: nPartial, dep: nDep };
             clusterGroup.addLayer(m);
             // Index each centre's id → its city marker so 'Locate on map' still works
             g.centres.forEach(c => { markerIndex[c.id] = m; });
