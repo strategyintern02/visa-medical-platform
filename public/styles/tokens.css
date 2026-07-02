@@ -1,0 +1,96 @@
+/* tokens.css — shared design tokens + base reset. Extracted from index.html (Phase 1). */
+    /* =========================================================
+   DESIGN TOKENS — light, layered, McKinsey-style.
+   Subtle warm-cool greys for differentiation. Status = colour.
+   ========================================================= */
+    :root {
+      --bg: #eef2f7;
+      /* page background — soft off-white with cool tint */
+      --bg-card: #ffffff;
+      /* card / panel surface */
+      --bg-soft: #f5f7fa;
+      /* secondary surface, hovers, table head */
+      --bg-stripe: #fafbfd;
+      /* zebra stripe */
+      --bg-accent-soft: #eff6ff;
+      /* selected / active subtle (blue-tinted, matches Test view) */
+      --border: #dde2ea;
+      --border-strong: #c5cdd8;
+      --text: #15202b;
+      --text-2: #46535f;
+      --muted: #6b7785;
+      --muted-2: #9aa4b2;
+      --accent: #2563eb;
+      /* primary blue — interactive + active states (unified with Test view) */
+      --accent-2: #1d4ed8;
+      /* deeper blue — hover / pressed */
+      --header: #1f2937;
+      /* charcoal navy — topbar surface only (was --accent) */
+      --link: #1d4ed8;
+      /* Status palette — the ONLY colour signal in the UI */
+      --st-active: #2f8a3e;
+      --st-active-bg: #e8f3ea;
+      --st-active-bd: #bcdcc1;
+      --st-new: #1e63c8;
+      --st-new-bg: #e6efff;
+      --st-new-bd: #b8cfee;
+      --st-depanel: #c53030;
+      --st-depanel-bg: #fbe9e9;
+      --st-depanel-bd: #ecbcbc;
+      --st-review: #d97706;
+      --st-review-bg: #fcf0dd;
+      --st-review-bd: #ecc69a;
+
+      --shadow-sm: 0 1px 1px rgba(15, 23, 42, .04), 0 1px 2px rgba(15, 23, 42, .04);
+      --shadow: 0 1px 2px rgba(15, 23, 42, .05), 0 2px 6px rgba(15, 23, 42, .06);
+      --shadow-pop: 0 4px 14px rgba(15, 23, 42, .10);
+      --radius: 8px;
+      --radius-sm: 6px;
+      --font: 'Inter', 'Segoe UI', 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Helvetica Neue', Arial, sans-serif;
+    }
+
+    * {
+      box-sizing: border-box
+    }
+
+    html,
+    body {
+      height: 100%;
+      margin: 0;
+      font-family: var(--font);
+      color: var(--text);
+      background: var(--bg);
+      font-size: 13px;
+      line-height: 1.45;
+      -webkit-font-smoothing: antialiased
+    }
+
+    button {
+      font-family: inherit;
+      cursor: pointer
+    }
+
+    input,
+    select {
+      font-family: inherit;
+      font-size: 13px
+    }
+
+    ::-webkit-scrollbar {
+      width: 8px;
+      height: 8px
+    }
+
+    ::-webkit-scrollbar-thumb {
+      background: #c5cdd8;
+      border-radius: 4px
+    }
+
+    ::-webkit-scrollbar-thumb:hover {
+      background: #a8b2bf
+    }
+
+    ::-webkit-scrollbar-track {
+      background: transparent
+    }
+

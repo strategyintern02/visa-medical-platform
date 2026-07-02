@@ -32,15 +32,23 @@ The two views are **linked by destination**:
   "View N centres empanelled for [X] →" bar that jumps to the map filtered to that
   programme. (Abu Dhabi's tests roll up to the WAFID centres.)
 
-Both views live in the one `public/index.html`. See `CLAUDE.md` for how the Test
-Requirements view is isolated (`#viewTests` / `window.MT`) and linked
-(`DEST_TAXONOMY` / `window.VMP`).
+The frontend is split into ES modules (no build step): `public/index.html` is a shell
+that links `styles/*.css` and loads `src/map/main.js` (Centre Map → `window.VMP`),
+`src/tests/main.js` (Test Requirements → `window.MT`), and `src/shared/*` (utils,
+`DEST_TAXONOMY`, the view switcher + cross-jumps). The two views talk only through the
+`window.*` globals. See `CLAUDE.md` and `RESTRUCTURE.md` for the module map.
 
 ## Folder layout
 
 ```
 .
-├── public/        Files served to the browser. Edit index.html for UI/behaviour.
+├── public/        Served to the browser (no build step):
+│   ├── index.html     slim shell (markup + CSS <link>s + module <script>s)
+│   ├── styles/        tokens.css · shell.css · map.css · tests.css
+│   ├── src/shared/    utils.js · taxonomy.js · bridge.js
+│   ├── src/map/       main.js  (Centre Map app → window.VMP)
+│   ├── src/tests/     main.js  (Test Requirements app → window.MT)
+│   └── data-inline.js offline fallback dataset (window.__INLINE_DATA__)
 ├── server/        Node/Express API. Reads data from Gist (prod) or data/ (dev).
 ├── data/          Source of truth for centres + WAFID demand. Pushed to the Gist.
 ├── scripts/       start.bat (run locally) and push-to-gist.ps1 (deploy data).

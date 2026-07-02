@@ -17,9 +17,13 @@ standalone dashboard. See "The two views" below before editing either.
 ## Tech stack (kept deliberately small)
 
 - Backend: Node + Express in `server/api.js`. Single file. No framework on top.
-- Frontend: ONE HTML file (`public/index.html`) with inline CSS + inline JS. No
-  bundler, no build step. Leaflet + Leaflet.markercluster + Leaflet.heat + xlsx
-  are loaded from CDN.
+- Frontend: split into ES modules under `public/` — a slim `index.html` **shell** that
+  links `styles/{tokens,shell,map,tests}.css` and loads three `<script type="module">`
+  entries: `src/map/main.js` (Centre Map → `window.VMP`), `src/tests/main.js` (Test
+  Requirements → `window.MT`), and `src/shared/{utils,taxonomy,bridge}.js`. **No bundler,
+  no build step** — native ES modules, served as-is. Leaflet + markercluster + heat +
+  xlsx load from CDN as classic globals first; `data-inline.js` (offline fallback) loads
+  before the modules. See `RESTRUCTURE.md` for the full module map and history.
 - Data: two JSON files in `data/`. The live `data.json`; `data-snapshot.json` is
   the baseline for the in-app Revert feature.
 - Deploy: Vercel for code, GitHub Gist for data (read at request time).
@@ -123,9 +127,11 @@ Production (env vars set) → `readDB()` fetches the Gist.
 
 ## Editing rules
 
-- **One HTML file by design.** Do NOT split `public/index.html` into separate
-  CSS/JS files or introduce a bundler. The single-file architecture lets the dev
-  edit and verify without npm scripts. This is a feature.
+- **ES modules, but still NO build step.** The frontend is split into modules
+  (`public/styles/*.css`, `public/src/{shared,map,tests}/*.js`) served natively —
+  do NOT introduce a bundler (Vite/webpack); `index.html` stays a shell. Cross-view
+  calls go through the `window.*` globals (`VMP`, `MT`, `switchView`, `bridgeToCentres`,
+  `DEST_TAXONOMY`), **never** by importing the other view's internals. See `RESTRUCTURE.md`.
 - **Don't add build steps, TypeScript, or test frameworks** — the maintainer is
   not full-time on this, and tooling overhead has cost without matching benefit.
 - **No auth.** Internal tool; don't propose login flows unless asked.
@@ -145,14 +151,14 @@ Append an entry to `data/data.json` → `wafidDemand.cities`. Include
 geocoded `lat`/`lng`. Update `data-snapshot.json` too.
 
 ### Add a new map layer
-Pattern: toolbar button → `state.mapLayer` value → branch in `renderMap()` →
-cleanup line at the top of `renderMap()` → optional legend swap in
+Pattern (all in `src/map/main.js`): toolbar button → `state.mapLayer` value → branch in
+`renderMap()` → cleanup line at the top of `renderMap()` → optional legend swap in
 `updateMapLegend()`.
 
 ### Add a new rail tab
-Pattern: `<button class="rail-tab" data-tab="...">` → matching
-`<div class="rail-pane" data-pane="..." id="...">` → render function called from
-both `setTab()` (when activated) and `update()` (when filters change).
+Pattern: `<button class="rail-tab" data-tab="...">` + matching
+`<div class="rail-pane" data-pane="..." id="...">` in `public/index.html`, then a
+render function in `src/map/main.js` called from both `setTab()` and `update()`.
 
 ## After editing
 
@@ -173,18 +179,22 @@ touched any file in `data/`.
 
 | Need to find...                  | Look in                                                |
 | -------------------------------- | ------------------------------------------------------ |
-| Toolbar buttons (Markers/etc.)   | `public/index.html` around the `map-toolbar` block     |
-| Map render branches              | `public/index.html` — `function renderMap()`           |
-| Filter logic                     | `public/index.html` — `function filterCentres()`       |
-| Rail tab definitions             | `public/index.html` — search `rail-tab` and `rail-pane`|
+| Page shell / static markup       | `public/index.html` (topbar, map/rail, `#viewTests`)   |
+| Styles                           | `public/styles/{tokens,shell,map,tests}.css`           |
+| Centre Map app (all JS)          | `src/map/main.js` (exposes `window.VMP`)               |
+| Map render branches              | `src/map/main.js` — `function renderMap()`             |
+| Filter logic                     | `src/map/main.js` — `function filterCentres()`         |
+| Rail tab panes / renderers       | markup in `public/index.html`; renderers in `src/map/main.js` |
+| Test Requirements app (all JS)   | `src/tests/main.js` (exposes `window.MT`)              |
+| Test-requirements data           | `src/tests/main.js` — `COUNTRIES` / `DATA` / `OP_DATA` |
+| View switcher + cross-jumps      | `src/shared/bridge.js` (`switchView`, `bridgeToCentres`) |
+| Cross-view taxonomy              | `src/shared/taxonomy.js` (`DEST_TAXONOMY`)             |
+| Shared utils                     | `src/shared/utils.js` (`$`, `fmt`, `escapeHTML`, …)    |
+| Offline fallback dataset         | `public/data-inline.js` (`window.__INLINE_DATA__`)     |
 | API endpoints                    | `server/api.js`                                        |
 | Gist read/write                  | `server/api.js` — `readDB()` / `writeDB()`             |
 | Snapshot/Revert                  | `server/api.js` — `readSnapshot()` / `writeSnapshot()` |
 | Data schema reference            | `data/data.json` first entry                           |
-| Test Requirements view (UI/JS)   | `public/index.html` — `#viewTests` markup + `window.MT` IIFE |
-| View switcher                    | `public/index.html` — `.view-switch` / `switchView()`  |
-| Test-requirements data           | `public/index.html` — `COUNTRIES` / `DATA` / `OP_DATA` (in `MT`) |
-| Cross-view linkage (Phase 2)     | `public/index.html` — `DEST_TAXONOMY`, `window.VMP`, `bridgeToCentres/bridgeToTests`, `renderCrossLink` |
 | Source documents / archives      | `reference/` (PDFs, PNGs, xlsx, original dashboard)    |
 
 ## CHANGELOG hygiene

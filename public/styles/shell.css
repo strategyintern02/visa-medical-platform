@@ -1,0 +1,199 @@
+/* shell.css — app shell: topbar, layout, view switcher + transitions (shared). */
+    /* =========================================================
+   APP SHELL — topbar + 2-column body (map 70% | rail 30%)
+   ========================================================= */
+    .app {
+      display: grid;
+      grid-template-rows: 50px 1fr;
+      height: 100vh
+    }
+
+    /* ---- Topbar ---- */
+    .topbar {
+      display: flex;
+      align-items: center;
+      background: var(--header);
+      color: #fff;
+      padding: 0 16px;
+      border-bottom: 1px solid #0b1220
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-weight: 600;
+      font-size: 14px;
+      letter-spacing: .005em
+    }
+
+    .brand-mark {
+      width: 24px;
+      height: 24px;
+      border: 1.5px solid #fff;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 11px;
+      font-weight: 700;
+      border-radius: 3px;
+      background: rgba(255, 255, 255, .04)
+    }
+
+    .brand-sub {
+      color: #a8b2c2;
+      font-weight: 400;
+      font-size: 12px;
+      margin-left: 8px;
+      padding-left: 10px;
+      border-left: 1px solid #344155
+    }
+
+    .topbar-kpis {
+      display: flex;
+      gap: 0;
+      margin-left: auto;
+      align-items: center
+    }
+
+    .kpi {
+      padding: 0 14px;
+      display: flex;
+      flex-direction: column;
+      align-items: flex-start;
+      line-height: 1;
+      border-left: 1px solid #344155;
+      height: 34px;
+      justify-content: center
+    }
+
+    .kpi-val {
+      font-size: 14px;
+      font-weight: 600;
+      color: #fff;
+      font-variant-numeric: tabular-nums
+    }
+
+    .kpi-lbl {
+      font-size: 10px;
+      color: #9aa6b8;
+      text-transform: uppercase;
+      letter-spacing: .06em;
+      margin-top: 3px
+    }
+
+    .topbar-actions {
+      display: flex;
+      gap: 6px;
+      margin-left: 14px;
+      padding-left: 14px;
+      border-left: 1px solid #344155
+    }
+
+    .btn-top {
+      background: transparent;
+      color: #dde4ec;
+      border: 1px solid #475569;
+      padding: 5px 11px;
+      font-size: 11px;
+      border-radius: 3px;
+      text-transform: uppercase;
+      letter-spacing: .04em;
+      font-weight: 500
+    }
+
+    .btn-top:hover {
+      background: #334155;
+      color: #fff;
+      border-color: #5c6b80
+    }
+
+    /* ---- Main body: MAP 70% | RAIL 30% ---- */
+    .body {
+      display: grid;
+      grid-template-columns: 70% 30%;
+      min-height: 0;
+      background: var(--bg)
+    }
+
+    @media(min-width:1700px) {
+      .body {
+        grid-template-columns: 72% 28%
+      }
+    }
+
+    @media(max-width:1100px) {
+      .body {
+        grid-template-columns: 65% 35%
+      }
+    }
+
+/* ===== merged view switcher + top-level view toggling ===== */
+.view-switch { display:flex; margin-left:18px; border:1px solid var(--border-strong); border-radius:8px; overflow:hidden; flex-shrink:0; }
+.view-switch button { padding:7px 15px; font-size:12.5px; font-weight:600; font-family:inherit; border:none; cursor:pointer; background:var(--bg-card); color:var(--muted); transition:background .15s, color .15s; white-space:nowrap; }
+.view-switch button + button { border-left:1px solid var(--border); }
+.view-switch button:hover { background:var(--bg-soft); color:var(--text); }
+.view-switch button.active { background:var(--accent); color:#fff; }
+#viewTests { display:none; }
+/* Let the shell grow with the dashboard's content instead of clamping it to a 100vh
+   grid track — otherwise #viewTests's background only covers one screen and the
+   scrolled-past content shows the light page canvas (very visible in dark mode). */
+#app.view-tests { height: auto; min-height: 100vh; }
+#app.view-tests #viewTests { display:block; min-height:calc(100vh - 56px); }
+#app.view-tests .body, #app.view-tests .compare-bar { display:none !important; }
+#app.view-tests #topKpis, #app.view-tests .topbar-actions { display:none; }
+/* =========================================================
+   MODERN BLUE THEME + INTERACTION POLISH  (2026-06-30)
+   Brings the Centre Map view up to the Test Requirements
+   "modern blue dashboard" look and adds shared micro-interactions
+   so switching tabs feels like one integrated system.
+   Map-side overrides only — #viewTests already has this look.
+   ========================================================= */
+
+/* ---- Topbar stays dark (its own --header token), rounded brand + buttons ---- */
+.brand-mark { border-radius: 7px; background: rgba(255,255,255,.07); }
+.btn-top { border-radius: 7px; transition: background .18s, border-color .18s, color .18s, transform .12s; }
+.btn-top:active { transform: translateY(1px); }
+
+/* ---- View switch: segmented control; the ACTIVE BUTTON is the pill (cross-fade).
+   (Earlier a separate 50%-wide sliding ::before was used, but the two labels are
+   different widths so a fixed 50% pill misaligned — letting the button be the pill
+   makes it always match, whatever the label length.) ---- */
+.view-switch {
+  background: rgba(255,255,255,.08);
+  border: 1px solid rgba(255,255,255,.16);
+  border-radius: 999px;
+  padding: 3px;
+  gap: 2px;
+  overflow: visible;
+}
+.view-switch button {
+  border: none;
+  background: transparent;
+  color: #c7d0dd;
+  padding: 7px 16px;
+  border-radius: 999px;
+  font-weight: 600;
+  white-space: nowrap;
+  transition: background-color .22s ease, color .22s ease, box-shadow .22s ease;
+}
+.view-switch button + button { border-left: none; }
+/* No background on hover — the old base rule painted a near-white box on the dark bar.
+   Keep switching simple: just a subtle text brighten, no fill. */
+.view-switch button:hover:not(.active) { background: transparent; color: #eef2f8; }
+.view-switch button.active {
+  background: var(--accent);
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(37,99,235,.4);
+}
+
+/* ---- Cross-view transition: gentle fade/rise when a view becomes active ---- */
+@keyframes viewIn { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+#app.view-tests #viewTests { animation: viewIn .32s cubic-bezier(.4,0,.2,1) both; }
+#app:not(.view-tests) .body { animation: fadeIn .28s ease both; }
+@media (prefers-reduced-motion: reduce) {
+  .view-switch::before,
+  #app.view-tests #viewTests,
+  #app:not(.view-tests) .body { animation: none; transition: none; }
+}
