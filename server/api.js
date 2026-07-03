@@ -129,6 +129,10 @@ app.get('/api/centres', async (req, res) => {
       if (c.lat  !== null && typeof c.lat  !== 'number') c.lat  = parseFloat(c.lat)  || null;
       if (c.lng  !== null && typeof c.lng  !== 'number') c.lng  = parseFloat(c.lng)  || null;
     });
+    // Edge-cache the (Gist-backed) data so a refresh doesn't re-read GitHub every time.
+    // Vercel serves it from the edge for 60s, then stale-while-revalidate for 5 min while it
+    // refetches in the background. A write (empanelment) appears within ~60s, or hard-refresh.
+    res.set('Cache-Control', 'public, max-age=0, s-maxage=60, stale-while-revalidate=300');
     res.json({ centres: db.centres, wafidDemand: db.wafidDemand || null });
   } catch (e) {
     console.error(e);

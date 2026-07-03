@@ -1342,7 +1342,23 @@ import { $, $$, fmt, escapeHTML, pct, debounce } from '../shared/utils.js';
         downloadFile('visa-medical-centres.csv', header + '\n' + body, 'text/csv;charset=utf-8');
       }
 
-      function exportXLSX() {
+      // Lazy-load the heavy (~880 KB) xlsx library only when an Excel export is requested,
+      // instead of on every page load.
+      let _xlsxPromise = null;
+      function loadXLSX() {
+        if (window.XLSX) return Promise.resolve();
+        if (!_xlsxPromise) _xlsxPromise = new Promise((resolve, reject) => {
+          const s = document.createElement('script');
+          s.src = 'https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js';
+          s.onload = resolve;
+          s.onerror = () => { _xlsxPromise = null; reject(new Error('xlsx load failed')); };
+          document.head.appendChild(s);
+        });
+        return _xlsxPromise;
+      }
+      async function exportXLSX() {
+        try { await loadXLSX(); }
+        catch (e) { alert('Excel export unavailable — could not load the library (are you offline?).'); return; }
         const rows = filterCentres();
         const data = rows.map(r => ({
           'Centre ID': r.id,

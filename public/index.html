@@ -277,11 +277,14 @@
     </div>
   </div>
 
-  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
-  <script src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
-  <script src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
-  <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script>
-  <script src="data-inline.js"></script>
+  <!-- Map libs: deferred so they don't block first paint. Deferred scripts run in
+       document order, before the modules, so Leaflet (L) is ready when map/main.js runs. -->
+  <script defer src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script defer src="https://unpkg.com/leaflet.markercluster@1.5.3/dist/leaflet.markercluster.js"></script>
+  <script defer src="https://unpkg.com/leaflet.heat@0.2.0/dist/leaflet-heat.js"></script>
+  <!-- xlsx (~880 KB, Excel export) is lazy-loaded on demand from src/map/main.js — not every load. -->
+  <!-- Offline fallback dataset: deferred (only read if /api/centres fails). -->
+  <script defer src="data-inline.js"></script>
   <script type="module" src="src/map/main.js"></script>
   <script type="module" src="src/tests/main.js"></script>
 <!-- Shared view layer (taxonomy + view switcher + cross-jumps) — ES module.
