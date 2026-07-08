@@ -19,64 +19,71 @@
    ═══════════════════════════════════════════════ */
 
 const COUNTRIES = [
-  { id: 'AU', name: 'Australia',      flag: '🇦🇺' },
-  { id: 'NZ', name: 'New Zealand',    flag: '🇳🇿' },
-  { id: 'MY', name: 'Malaysia',       flag: '🇲🇾' },
-  { id: 'GCC', name: 'GCC (WAFID)',   flag: '🌐' },
-  { id: 'AD', name: 'Abu Dhabi',      flag: '🇦🇪' },
+  { id: 'AU',  name: 'Australia',       flag: '🇦🇺' },
+  { id: 'NZ',  name: 'New Zealand',     flag: '🇳🇿' },
+  { id: 'MY',  name: 'Malaysia',        flag: '🇲🇾' },
+  { id: 'GCC', name: 'GCC (WAFID)',     flag: '🌐' },
+  { id: 'AD',  name: 'Abu Dhabi',       flag: '🇦🇪' },
+  { id: 'CA',  name: 'Canada',          flag: '🇨🇦' },
+  { id: 'UK',  name: 'United Kingdom',  flag: '🇬🇧' },
+  { id: 'JP',  name: 'Japan',           flag: '🇯🇵' },
+  { id: 'KR',  name: 'South Korea',     flag: '🇰🇷' },
+  { id: 'TW',  name: 'Taiwan',          flag: '🇹🇼' },
+  { id: 'CK',  name: 'Cook Islands',    flag: '🇨🇰' },
 ];
 
 const DATA = [
   { type:'cat', name:'Radiology', icon:'rad' },
-  { type:'test', name:'Chest X-ray (TB screening)', method:'Digital chest radiograph (PA view; additional views if indicated)', req:[1,1,1,1,1] },
+  { type:'test', name:'Chest X-ray (TB screening)', method:'Digital chest radiograph (PA view; additional views if indicated)', req:[1,1,1,1,1,1,1,1,1,1,1], note:'Canada: required for applicants aged 11 and older (IRCC Panel Members Guide). Japan: all JPETS applicants; sputum added if active TB is clinically suspected. South Korea: TB screening certificate required (MOFA).' },
 
   { type:'cat', name:'Laboratory tests', icon:'lab' },
 
   { type:'sub', name:'Hematology' },
-  { type:'test', name:'Hemoglobin', method:'Automated hematology analyzer (CBC)', req:[0,1,0,1,0] },
-  { type:'test', name:'WBC', method:'Automated hematology analyzer (CBC)', req:[0,1,0,0,0] },
-  { type:'test', name:'Platelets', method:'Automated hematology analyzer (CBC)', req:[0,1,0,0,0] },
-  { type:'test', name:'ABO blood grouping', method:'Manual reagent-based typing', req:[0,0,1,1,0] },
+  { type:'test', name:'Hemoglobin', method:'Automated hematology analyzer (CBC)', req:[0,1,0,1,0,0,0,0,0,0,1] },
+  { type:'test', name:'WBC', method:'Automated hematology analyzer (CBC)', req:[0,1,0,1,0,0,0,0,0,0,1] },
+  { type:'test', name:'Platelets', method:'Automated hematology analyzer (CBC)', req:[0,1,0,1,0,0,0,0,0,0,1] },
+  { type:'test', name:'ABO blood grouping', method:'Manual reagent-based typing', req:[0,0,1,1,0,0,0,0,0,0,0] },
 
   { type:'sub', name:'Biochemistry' },
-  { type:'test', name:'Creatinine', method:'Serum creatinine (enzymatic or Jaffe method)', req:[1,1,1,1,0] },
-  { type:'test', name:'eGFR', method:'Calculated from serum creatinine', req:[1,1,1,1,0] },
-  { type:'test', name:'HbA1C', method:'HPLC or immunoassay analyzer', req:[0,1,0,0,0] },
-  { type:'test', name:'Random blood sugar', method:'Hexokinase / GOD-POD (biochemistry analyzer)', req:[0,0,0,1,0] },
-  { type:'test', name:'LFT (liver function)', method:'Enzymatic colorimetric assay (automated biochemistry analyzer)', req:[0,0,0,1,0] },
+  { type:'test', name:'Creatinine', method:'Serum creatinine (enzymatic or Jaffe method)', req:[1,1,1,1,0,1,0,0,0,0,1], note:'Canada: required for applicants aged 15 and older (IRCC Panel Members Guide).' },
+  { type:'test', name:'eGFR', method:'Calculated from serum creatinine', req:[1,1,1,1,0,0,0,0,0,0,0] },
+  { type:'test', name:'HbA1C', method:'HPLC or immunoassay analyzer', req:[0,1,0,0,0,0,0,0,0,0,0] },
+  { type:'test', name:'Random blood sugar', method:'Hexokinase / GOD-POD (biochemistry analyzer)', req:[0,0,0,1,0,0,0,0,0,0,0] },
+  { type:'test', name:'LFT (liver function)', method:'Enzymatic colorimetric assay (automated biochemistry analyzer)', req:[0,0,0,1,0,0,0,0,0,0,1] },
 
   { type:'sub', name:'Serology / infectious diseases' },
-  { type:'test', name:'HIV', method:'Machine-based ELISA screening; if positive, confirmatory Western Blot or line-blot', req:[1,1,1,1,1] },
-  { type:'test', name:'Hepatitis B (HBsAg)', method:'Immunoassay — ELISA/CLIA (automated)', req:[1,1,1,1,1], note:'Abu Dhabi: category Bi, Bii, C only. Malaysia: infectious disease screening.' },
-  { type:'test', name:'Hepatitis C (Anti-HCV)', method:'Immunoassay — ELISA/CLIA (automated)', req:[1,1,1,1,1], note:'Abu Dhabi: category Bii, C only.' },
-  { type:'test', name:'Syphilis (VDRL/RPR + TPHA)', method:'Non-treponemal screen (VDRL/RPR) + treponemal confirm (TPHA/TPPA/EIA)', req:[1,1,1,1,1], note:'Abu Dhabi: category Bi, Bii, C only.' },
-  { type:'test', name:'Leprosy (clinical exam)', method:'Physical examination — skin and nerve assessment', req:[0,0,1,0,1], note:'Abu Dhabi: physical exam to detect leprosy across all categories. Malaysia: part of FOMEMA certification.' },
+  { type:'test', name:'HIV', method:'Machine-based ELISA screening; if positive, confirmatory Western Blot or line-blot', req:[1,1,1,1,1,1,0,0,0,0,1], note:'Canada: required for applicants aged 15 and older (IRCC Panel Members Guide).' },
+  { type:'test', name:'Hepatitis B (HBsAg)', method:'Immunoassay — ELISA/CLIA (automated)', req:[1,1,1,1,1,0,0,0,0,0,1], note:'Abu Dhabi: category Bi, Bii, C only. Malaysia: infectious disease screening.' },
+  { type:'test', name:'Hepatitis C (Anti-HCV)', method:'Immunoassay — ELISA/CLIA (automated)', req:[1,1,1,1,1,0,0,0,0,0,0], note:'Abu Dhabi: category Bii, C only.' },
+  { type:'test', name:'Syphilis (VDRL/RPR + TPHA)', method:'Non-treponemal screen (VDRL/RPR) + treponemal confirm (TPHA/TPPA/EIA)', req:[2,1,1,1,1,1,0,0,0,1,1], note:'Australia: required for refugee and humanitarian (Class XB series) visa applicants aged 15+ only (Section 32, AU Panel Member Instructions Nov 2025). Canada: required for applicants aged 15 and older (IRCC Panel Members Guide). Abu Dhabi: category Bi, Bii, C only.' },
+  { type:'test', name:'Leprosy (clinical exam)', method:'Physical examination — skin and nerve assessment', req:[0,0,1,0,1,0,0,0,0,1,0], note:'Abu Dhabi: physical exam to detect leprosy across all categories. Malaysia: part of FOMEMA certification.' },
 
   { type:'sub', name:'TB immunology' },
-  { type:'test', name:'IGRA blood test', method:'Interferon-gamma release assay (QuantiFERON Gold Plus)', req:[0,0,0,0,2], note:'Abu Dhabi: accepted as CXR substitute for follow-up/special cases only (Appendix 3).', trigger:'Chest X-ray (TB screening)', triggerNote:'Ordered when CXR shows abnormal / TB-suspicious finding (Abu Dhabi Appendix 3 follow-up cases only).' },
+  { type:'test', name:'IGRA blood test', method:'Interferon-gamma release assay (QuantiFERON Gold Plus)', req:[0,0,0,0,2,0,0,0,0,0,0], note:'Abu Dhabi: accepted as CXR substitute for follow-up/special cases only (Appendix 3).', trigger:'Chest X-ray (TB screening)', triggerNote:'Ordered when CXR shows abnormal / TB-suspicious finding (Abu Dhabi Appendix 3 follow-up cases only).' },
 
   { type:'sub', name:'Microbiology' },
-  { type:'test', name:'TB sputum (AFB + culture + PCR)', method:'AFB smear microscopy + mycobacterial culture (solid+liquid) + NAAT; DST if culture positive', req:[1,1,0,0,2], note:'Abu Dhabi: required only for suspected PTB cases (follow-up within 3 working days of CXR finding).', trigger:'Chest X-ray (TB screening)', triggerNote:'First sputum sample must be collected within 3 working days of a TB-suspicious CXR finding.' },
-  { type:'test', name:'Malaria (blood smear)', method:'Peripheral blood smear microscopy (thick & thin film)', req:[0,0,1,1,0] },
-  { type:'test', name:'Microfilaria', method:'Peripheral blood smear microscopy', req:[0,0,1,1,0] },
-  { type:'test', name:'Stool parasite exam', method:'Stool microscopy — routine, helminthes, ova, cyst', req:[0,0,0,1,0] },
+  { type:'test', name:'TB sputum (AFB + culture + PCR)', method:'AFB smear microscopy + mycobacterial culture (solid+liquid) + NAAT; DST if culture positive', req:[2,2,0,0,2,0,0,2,0,0,0], note:'Australia: sputum collected only when active TB is clinically suspected from CXR or history (Code 603, AU Panel Member Instructions Nov 2025). New Zealand: same — conditional on TB suspicion (INZ 1216 May 2026, Part 5). Japan: collected only when active TB is suspected during JPETS examination (jpets.mhlw.go.jp). Abu Dhabi: required only for suspected PTB cases (follow-up within 3 working days of CXR finding).', trigger:'Chest X-ray (TB screening)', triggerNote:'First sputum sample must be collected within 3 working days of a TB-suspicious CXR finding.' },
+  { type:'test', name:'Malaria (blood smear)', method:'Peripheral blood smear microscopy (thick & thin film)', req:[0,0,1,1,0,0,0,0,0,0,0] },
+  { type:'test', name:'Microfilaria', method:'Peripheral blood smear microscopy', req:[0,0,1,1,0,0,0,0,0,0,0] },
+  { type:'test', name:'Stool parasite exam', method:'Stool microscopy — routine, helminthes, ova, cyst', req:[0,0,0,1,0,0,0,0,0,1,0] },
 
   { type:'sub', name:'Urine tests' },
-  { type:'test', name:'Urine albumin', method:'Urine dipstick', req:[0,1,1,1,0] },
-  { type:'test', name:'Urine sugar', method:'Urine dipstick', req:[0,1,1,1,0] },
-  { type:'test', name:'Urine blood', method:'Urine dipstick', req:[0,1,1,1,0] },
-  { type:'test', name:'Pregnancy test', method:'Urine or blood hCG immunoassay (qualitative)', req:[0,1,1,0,1], note:'Abu Dhabi: mandatory for all female new/renew category Bi applicants. GCC WAFID: female applicants must not be pregnant.' },
+  { type:'test', name:'Urine albumin', method:'Urine dipstick', req:[0,1,1,1,0,0,0,0,0,0,1] },
+  { type:'test', name:'Urine sugar', method:'Urine dipstick', req:[0,1,1,1,0,0,0,0,0,0,1] },
+  { type:'test', name:'Urine blood', method:'Urine dipstick', req:[0,1,1,1,0,0,0,0,0,0,1] },
+  { type:'test', name:'Pregnancy test', method:'Urine or blood hCG immunoassay (qualitative)', req:[0,1,1,0,1,0,0,0,0,0,0], note:'Abu Dhabi: mandatory for all female new/renew category Bi applicants. GCC WAFID: female applicants must not be pregnant.' },
 
   { type:'sub', name:'Toxicology' },
-  { type:'test', name:'Drug test (opiates / cannabis)', method:'Urine immunoassay screening kit', req:[0,0,1,0,0], note:'Malaysia FOMEMA: urine drug screening for opiates, methamphetamine, and cannabinoids.' },
+  { type:'test', name:'Drug test (opiates / cannabis)', method:'Urine immunoassay screening kit', req:[0,0,1,0,0,0,0,0,0,0,0], note:'Malaysia FOMEMA: urine drug screening for opiates, methamphetamine, and cannabinoids.' },
 
   { type:'cat', name:'Vaccination', icon:'vax' },
-  { type:'test', name:'Polio vaccine', method:'IPV or attenuated OPV — documentation of ≥3 doses', req:[0,0,0,1,0] },
-  { type:'test', name:'MMR dose 1', method:'Live attenuated vaccine', req:[0,0,0,1,0] },
-  { type:'test', name:'MMR dose 2', method:'Live attenuated vaccine (1 month after dose 1)', req:[0,0,0,1,0] },
-  { type:'test', name:'Meningococcal (ACWY)', method:'Conjugate vaccine — 1 dose for most adults', req:[0,0,0,1,0] },
-  { type:'test', name:'DPT / Tdap', method:'Combined tetanus, diphtheria, pertussis vaccine', req:[0,0,0,1,0] },
-  { type:'test', name:'Hepatitis B vaccine', method:'3-dose intramuscular course (0, 1, 6 months)', req:[0,0,0,0,1], note:'Abu Dhabi: required for category Bi, Bii, C. Exemption with attested HBV vaccine proof or positive anti-HBs Ab.' },
+  { type:'test', name:'Polio vaccine', method:'IPV or attenuated OPV — documentation of ≥3 doses', req:[0,0,0,1,0,0,0,0,0,0,0] },
+  { type:'test', name:'MMR dose 1', method:'Live attenuated vaccine', req:[0,0,0,1,0,0,0,0,0,0,0] },
+  { type:'test', name:'MMR dose 2', method:'Live attenuated vaccine (1 month after dose 1)', req:[0,0,0,1,0,0,0,0,0,0,0] },
+  { type:'test', name:'Measles/Rubella immunity', method:'Serology (IgG antibody) OR documented vaccine certificate', req:[0,0,0,0,0,0,0,0,0,1,0], note:'Taiwan: Form B (Residence) requires proof of positive Measles and Rubella IgG antibody OR documented vaccination certificates (Taiwan MOH / tcust.edu.tw).' },
+  { type:'test', name:'Meningococcal (ACWY)', method:'Conjugate vaccine — 1 dose for most adults', req:[0,0,0,1,0,0,0,0,0,0,0] },
+  { type:'test', name:'DPT / Tdap', method:'Combined tetanus, diphtheria, pertussis vaccine', req:[0,0,0,1,0,0,0,0,0,0,0] },
+  { type:'test', name:'Hepatitis B vaccine', method:'3-dose intramuscular course (0, 1, 6 months)', req:[0,0,0,0,1,0,0,0,0,0,0], note:'Abu Dhabi: required for category Bi, Bii, C. Exemption with attested HBV vaccine proof or positive anti-HBs Ab.' },
 ];
 
 /* ─── Operational data (from Excel checklist) ─── */
@@ -214,6 +221,12 @@ function render() {
   renderTable();
   renderCrossLink();
   document.getElementById('detailPanel').classList.remove('open');
+}
+
+/* ─── Destinations list, read live by the map's rail Test card so it never goes stale
+   when a country is added/removed here ─── */
+function destinations() {
+  return COUNTRIES.map(c => ({ id: c.id, name: c.name, flag: c.flag }));
 }
 
 /* ─── Phase 2.1: grouped test requirements for one destination (read-only) ─── */
@@ -399,10 +412,10 @@ function renderStats() {
     const topIdx     = byCountry.indexOf(top);
     const auNz       = tests.filter(t => t.req[0] >= 1 && t.req[1] >= 1).length;
     row.innerHTML =
-      ic('green', '🔒', universal,     `tests required by <strong>all 5 countries</strong> — universal baseline`, 'MT.showUniversalTests()') +
+      ic('green', '🔒', universal,     `tests required by <strong>all ${COUNTRIES.length} countries</strong> — universal baseline`, 'MT.showUniversalTests()') +
       ic('amber', '📋', top.count,     `${top.flag} <strong>${top.name}</strong> has the highest test count`, `MT.selectCountry(${topIdx})`) +
       ic('blue',  '🤝', auNz,          `tests shared between <strong>Australia &amp; New Zealand</strong>`, 'MT.quickCompare([0,1])') +
-      ic('grey',  '🧪', tests.length,  `total tests tracked across all 5 countries`, 'MT.clearAll()');
+      ic('grey',  '🧪', tests.length,  `total tests tracked across all ${COUNTRIES.length} countries`, 'MT.clearAll()');
   }
 }
 
@@ -648,5 +661,5 @@ function toggleTheme() {
 
 render();
 
-window.MT = { setMode, onSearch, clearAll, toggleCountry, toggleTest, toggleGroup, setTableView, quickCompare, showUniversalTests, selectCountry, selectDestById, testsForDest, showDetail, showFuTooltip, hideFuTooltip, updateCN, toggleTheme, _render: render };
+window.MT = { setMode, onSearch, clearAll, toggleCountry, toggleTest, toggleGroup, setTableView, quickCompare, showUniversalTests, selectCountry, selectDestById, testsForDest, destinations, showDetail, showFuTooltip, hideFuTooltip, updateCN, toggleTheme, _render: render };
 })();

@@ -72,8 +72,11 @@ The dashboard was inlined but kept fully isolated so it can't collide with the m
 
 ### Test-requirements data model (inline, in the `MT` IIFE)
 
-- `COUNTRIES` — the 5 destinations (`id`, `name`, `flag`). Order matters: each
-  test's `req[]` is indexed by this order.
+- `COUNTRIES` — the 11 destinations (`id`, `name`, `flag`). Order matters: each
+  test's `req[]` is indexed by this order. `MT.destinations()` exposes a read-only
+  copy — other modules (e.g. the map's rail Test card) read that instead of keeping
+  their own hardcoded country list, so they can't go stale when a destination is
+  added here.
 - `DATA` — mixed rows `{type:'cat'|'sub'|'test', …}`. A `test` has `name`,
   `method`, `req:[…]` (0 = not required, 1 = required, 2 = follow-up), optional
   `note` / `trigger` / `triggerNote`.
@@ -85,17 +88,19 @@ The dashboard was inlined but kept fully isolated so it can't collide with the m
 
 The two datasets join on **destination**, not source country. The mapping lives in
 `window.DEST_TAXONOMY` (`byProgramme` / `programmeByDest`): Australia↔AU,
-New Zealand↔NZ, Malaysia↔MY, WAFID↔GCC, and Abu Dhabi (AD) rolls up to the WAFID
-programme. UK / Canada / USA / South Korea / Japan have centres but no test data yet.
+New Zealand↔NZ, Malaysia↔MY, Canada↔CA, UK↔UK, Japan↔JP, South Korea↔KR, WAFID↔GCC,
+and Abu Dhabi (AD) rolls up to the WAFID programme. Taiwan (TW) and Cook Islands (CK)
+have test data but no centres on the map yet, and USA has centres but no test
+destination yet — all three are intentionally absent from the join until that changes.
 
 Cross-jump wiring (both live in `public/index.html`):
 - **Tests → Map:** when exactly one destination is selected, `renderCrossLink()`
   fills `#mtCrossLink` with a "View N centres for [X]" bar →
-  `bridgeToCentres(destId)` → `window.VMP.filterByProgramme(prog)`.
+  `bridgeToCentres(destId)` → `window.VMP.filterByProgramme(prog)`. Stays hidden for
+  destinations absent from the join (currently TW, CK).
 - **Map → Tests (inline):** each test-covered programme row gets a `.mt-test-link`
   🧪 button → `VMP.showTestsForProgramme(prog)`, which opens the **Test** rail tab
-  with that destination's card (see below). `bridgeToTests()` still exists for jumping
-  to the full matrix view but is no longer wired to the 🧪 button.
+  with that destination's card (see below).
 - `window.VMP` (defined inside the map IIFE) exposes `countByProgramme()`,
   `filterByProgramme()`, `setTestDest()`, `showTestsForProgramme()`; `DEST_TAXONOMY`
   + the `bridge*` fns live in the trailing bridge `<script>`. To add test data for a
@@ -107,9 +112,11 @@ IIFE) builds a compact, single-destination card driven by `state.testDest`;
 `renderTestPane()` mounts it into `#paneTest` and is called from `update()`. It reads
 test data live via `MT.testsForDest(id)` (no duplicate copy) and is styled with `tc-*`
 classes in the map's own `:root` tokens (unified to the modern blue palette on
-2026-06-30 — so the card now matches the dashboard rather than contrasting it). Chips call
-`VMP.setTestDest(id)`; the card's buttons reuse `bridgeToCentres()` (filter the map)
-and `switchView('tests')` (open the full matrix). Note the rail tab bar is a
+2026-06-30 — so the card now matches the dashboard rather than contrasting it). Chips are
+built from `MT.destinations()` (not a hardcoded list) and call `VMP.setTestDest(id)`;
+the card's buttons reuse `bridgeToCentres()` (filter the map) and `switchView('tests')`
+(open the full matrix). The "View N centres" button is skipped for destinations with
+no map programme (currently TW, CK) — a `.tc-note` explains why instead. Note the rail tab bar is a
 `repeat(4,1fr)` grid (`.rail-tabs`) so the 8 tabs wrap to two rows — add a 9th and it
 becomes three rows, no horizontal scroll. The standalone full-matrix view remains the
 place for cross-country comparison.

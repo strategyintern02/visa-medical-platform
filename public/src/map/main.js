@@ -888,17 +888,27 @@ import { $, $$, fmt, escapeHTML, pct, debounce } from '../shared/utils.js';
         const nCentres = prog ? state.data.centres.filter(c => Array.isArray(c.programs) && c.programs.includes(prog)).length : 0;
         const iconFor = ic => ic === 'rad' ? '🔬' : ic === 'lab' ? '🧪' : '💉';
 
-        const chips = [['AU','🇦🇺','AU'],['NZ','🇳🇿','NZ'],['MY','🇲🇾','MY'],['GCC','🌐','WAFID'],['AD','🇦🇪','AD']]
-          .map(([id, flag, lbl]) => `<button class="tc-chip${id === destId ? ' active' : ''}" onclick="VMP.setTestDest('${id}')">${flag} ${lbl}</button>`).join('');
+        // Chip labels read live from window.MT.destinations() so this never goes stale
+        // when a country is added/removed in tests/main.js.
+        const chips = (MT.destinations ? MT.destinations() : [])
+          .map(c => `<button class="tc-chip${c.id === destId ? ' active' : ''}" onclick="VMP.setTestDest('${c.id}')">${escapeHTML(c.name)}</button>`).join('');
 
         const groups = d.groups.map(g => `<div class="tc-group">
             <div class="tc-group-title">${iconFor(g.icon)} ${escapeHTML(g.cat)}</div>
             ${g.tests.map(t => `<div class="tc-test"><span class="tc-test-name">${escapeHTML(t.name)}</span><span class="tc-badge ${t.status}">${t.status === 'req' ? 'Required' : 'Follow-up'}</span></div>`).join('')}
           </div>`).join('');
 
-        const centresBtn = `<button class="tc-btn primary" onclick="bridgeToCentres('${destId}')">🗺️ ${isAD ? 'View WAFID centres' : 'View ' + fmt(nCentres) + ' centres'} on the map</button>`;
+        // Some destinations (Taiwan, Cook Islands) have test data but no empanelled
+        // centres on the map yet — no programme to link to, so skip the map button.
+        const centresBtn = prog
+          ? `<button class="tc-btn primary" onclick="bridgeToCentres('${destId}')">🗺️ ${isAD ? 'View WAFID centres' : 'View ' + fmt(nCentres) + ' centres'} on the map</button>`
+          : '';
         const matrixBtn = `<button class="tc-btn" onclick="switchView('tests');MT.selectDestById('${destId}')">Compare in full matrix ↗</button>`;
-        const note = isAD ? `<div class="tc-note">Abu Dhabi has no centres of its own — its applicants use WAFID-empanelled centres.</div>` : '';
+        const note = isAD
+          ? `<div class="tc-note">Abu Dhabi has no centres of its own — its applicants use WAFID-empanelled centres.</div>`
+          : !prog
+            ? `<div class="tc-note">No empanelled centres tracked yet for ${escapeHTML(d.name)} — test requirements only.</div>`
+            : '';
 
         return `<div class="tc-card">
           <div class="tc-head"><span class="tc-title">🧪 Test requirements</span></div>

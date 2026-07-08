@@ -494,11 +494,15 @@
   border-radius: var(--radius);
   box-shadow: var(--shadow);
   overflow: hidden;
+  /* Break out of the 1120px container — only the table uses the full viewport width */
+  width: calc(100vw - 40px);
+  max-width: 1680px;
+  margin-left: calc(50% - 50vw + 20px);
 }
 #viewTests .table-scroll {
   overflow-x: auto;
   overflow-y: auto;
-  max-height: 58vh;
+  max-height: 68vh;
 }
 #viewTests table {
   width: 100%;
@@ -510,7 +514,7 @@
   top: 0;
   z-index: 2;
   background: var(--surface-alt);
-  padding: 12px 14px;
+  padding: 10px 8px;
   font-size: 11px;
   font-weight: 600;
   text-transform: uppercase;
@@ -522,7 +526,7 @@
 }
 #viewTests thead th:first-child {
   text-align: left;
-  min-width: 240px;
+  min-width: 185px;
   padding-left: 20px;
 }
 #viewTests thead th .th-id {
@@ -570,14 +574,14 @@
   background: var(--surface);
 }
 #viewTests tr.test td {
-  padding: 10px 14px;
+  padding: 9px 8px;
   border-bottom: 1px solid var(--border-light);
   text-align: center;
   vertical-align: middle;
 }
 #viewTests tr.test td:first-child {
   text-align: left;
-  padding-left: 36px;
+  padding-left: 28px;
   color: var(--text-mid);
 }
 #viewTests .test-name {
@@ -596,7 +600,7 @@
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  padding: 3px 10px;
+  padding: 3px 7px;
   border-radius: 100px;
   font-size: 11px;
   font-weight: 500;
