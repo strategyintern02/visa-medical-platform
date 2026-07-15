@@ -252,6 +252,41 @@ function testsForDest(id) {
   };
 }
 
+/* ─── Cross-destination stats for the map's rail Test card (Phase 2.2) ─── */
+function insights(destId) {
+  const idx = COUNTRIES.findIndex(c => c.id === destId);
+  const tests = allTests();
+  const universal = tests.filter(t => t.req.every(v => v >= 1)).length;
+  const total = tests.length;
+  let required = 0, followUp = 0, unique = 0;
+  if (idx >= 0) {
+    tests.forEach(t => {
+      if (t.req[idx] === 1) required++;
+      else if (t.req[idx] === 2) followUp++;
+      if (t.req[idx] >= 1 && t.req.every((v, i) => i === idx || v === 0)) unique++;
+    });
+  }
+  return { universal, unique, total, required, followUp };
+}
+
+/* ─── Side-by-side comparison data for two destinations (Phase 2.2) ─── */
+function compareGroups(destA, destB) {
+  const idxA = COUNTRIES.findIndex(c => c.id === destA);
+  const idxB = COUNTRIES.findIndex(c => c.id === destB);
+  if (idxA < 0 || idxB < 0) return null;
+  const groups = [];
+  let cur = null;
+  DATA.forEach(d => {
+    if (d.type === 'cat') { cur = { cat: d.name, icon: d.icon, tests: [] }; groups.push(cur); }
+    else if (d.type === 'test' && cur) {
+      const vA = d.req[idxA];
+      const vB = d.req[idxB];
+      if (vA >= 1 || vB >= 1) cur.tests.push({ name: d.name, a: vA, b: vB });
+    }
+  });
+  return { a: COUNTRIES[idxA], b: COUNTRIES[idxB], groups: groups.filter(g => g.tests.length) };
+}
+
 /* ─── Phase 2: jump to the Centre Map for the selected destination ─── */
 function selectDestById(id) {
   const idx = COUNTRIES.findIndex(c => c.id === id);
@@ -272,7 +307,7 @@ function renderCrossLink() {
         : '';
       el.innerHTML =
         '<div class="mt-cl-inner">'
-        + '<span>' + dest.flag + ' Test requirements for <b>' + dest.name + '</b></span>'
+        + '<span>Test requirements for <b>' + dest.name + '</b></span>'
         + '<button class="mt-cl-btn" onclick="bridgeToCentres(\'' + dest.id + '\')">🗺️ View '
         + (n != null ? n + ' ' : '') + 'centres empanelled for ' + progLabel + ' →</button>'
         + note
@@ -295,14 +330,14 @@ function renderChips() {
       const sel = selectedCountries.has(i) ? ' selected' : '';
       const cnt = allTests().filter(t => t.req[i] >= 1).length;
       return `<div class="chip${sel}" onclick="MT.toggleCountry(${i})">
-        <span class="flag">${c.flag}</span>${c.name}<span class="count">${cnt}</span>
+        ${c.name}<span class="count">${cnt}</span>
       </div>`;
     }).join('');
     const quickCompareRow = `<div class="quick-compare">
       <span class="quick-compare-label">Quick compare:</span>
-      <button class="qc-btn" onclick="MT.quickCompare([0,1])">🇦🇺 AU + 🇳🇿 NZ</button>
-      <button class="qc-btn" onclick="MT.quickCompare([3,4])">🌐 GCC + 🇦🇪 Abu Dhabi</button>
-      <button class="qc-btn" onclick="MT.quickCompare([0,3])">🇦🇺 AU + 🌐 GCC</button>
+      <button class="qc-btn" onclick="MT.quickCompare([0,1])">Australia + New Zealand</button>
+      <button class="qc-btn" onclick="MT.quickCompare([3,4])">GCC + Abu Dhabi</button>
+      <button class="qc-btn" onclick="MT.quickCompare([0,3])">Australia + GCC</button>
     </div>`;
     section.innerHTML = label + '<div class="chip-row">' + chips + '</div>' + quickCompareRow;
   } else {
@@ -413,7 +448,7 @@ function renderStats() {
     const auNz       = tests.filter(t => t.req[0] >= 1 && t.req[1] >= 1).length;
     row.innerHTML =
       ic('green', '🔒', universal,     `tests required by <strong>all ${COUNTRIES.length} countries</strong> — universal baseline`, 'MT.showUniversalTests()') +
-      ic('amber', '📋', top.count,     `${top.flag} <strong>${top.name}</strong> has the highest test count`, `MT.selectCountry(${topIdx})`) +
+      ic('amber', '📋', top.count,     `<strong>${top.name}</strong> has the highest test count`, `MT.selectCountry(${topIdx})`) +
       ic('blue',  '🤝', auNz,          `tests shared between <strong>Australia &amp; New Zealand</strong>`, 'MT.quickCompare([0,1])') +
       ic('grey',  '🧪', tests.length,  `total tests tracked across all ${COUNTRIES.length} countries`, 'MT.clearAll()');
   }
@@ -565,7 +600,7 @@ function showDetail(name) {
     const v = t.req[i];
     const cls = v === 1 ? 'req' : v === 2 ? 'fu' : 'nr';
     const status = v === 1 ? 'Required' : v === 2 ? 'Follow-up only' : 'Not required';
-    return `<div class="detail-card ${cls}"><div class="dc-country">${c.flag} ${c.name}</div><div class="dc-status">${status}</div></div>`;
+    return `<div class="detail-card ${cls}"><div class="dc-country">${c.name}</div><div class="dc-status">${status}</div></div>`;
   }).join('');
 
   const meta = document.getElementById('detailMeta');
@@ -606,7 +641,7 @@ function showDetail(name) {
   }
   const defaultCN = Object.keys(window._cnNotes).find(k => window._cnNotes[k] && k !== '_general') || 'AU';
   const cnOptions = COUNTRIES.map(c =>
-    `<option value="${c.id}"${c.id === defaultCN ? ' selected' : ''}>${c.flag} ${c.name}</option>`
+    `<option value="${c.id}"${c.id === defaultCN ? ' selected' : ''}>${c.name}</option>`
   ).join('');
   const cnInitial = window._cnNotes[defaultCN]
     ? `<span class="op-block-text">${window._cnNotes[defaultCN]}</span>`
@@ -661,5 +696,5 @@ function toggleTheme() {
 
 render();
 
-window.MT = { setMode, onSearch, clearAll, toggleCountry, toggleTest, toggleGroup, setTableView, quickCompare, showUniversalTests, selectCountry, selectDestById, testsForDest, destinations, showDetail, showFuTooltip, hideFuTooltip, updateCN, toggleTheme, _render: render };
+window.MT = { setMode, onSearch, clearAll, toggleCountry, toggleTest, toggleGroup, setTableView, quickCompare, showUniversalTests, selectCountry, selectDestById, testsForDest, destinations, insights, compareGroups, showDetail, showFuTooltip, hideFuTooltip, updateCN, toggleTheme, _render: render };
 })();

@@ -42,6 +42,8 @@ import { $, $$, fmt, escapeHTML, pct, debounce } from '../shared/utils.js';
         compare: [],                          // up to 3 centre ids
         mapLayer: 'markers',                  // markers | heat | concentration | demand
         testDest: 'AU',                       // Phase 2.1 — destination shown by the inline test card (Insights)
+        testMode: 'single',                   // Phase 2.2 — 'single' | 'compare' inside the Test rail card
+        testCompareDests: [],                 // Phase 2.2 — up to 2 dest ids selected in compare mode
         wafidView: 'list',                    // list | table
         wafidSearch: '',
         wafidLevel: '',                       // '' | high | moderate | low
@@ -71,10 +73,21 @@ import { $, $$, fmt, escapeHTML, pct, debounce } from '../shared/utils.js';
           syncFilterUI();
           update();
         },
-        setTestDest(id) { state.testDest = id; renderTestPane(); },
+        setTestDest(id) { state.testDest = id; state.testMode = 'single'; renderTestPane(); },
+        setTestMode(m) { state.testMode = m; renderTestPane(); },
+        toggleCompareDest(id) {
+          if (!Array.isArray(state.testCompareDests)) state.testCompareDests = [];
+          var arr = state.testCompareDests;
+          var i = arr.indexOf(id);
+          if (i >= 0) arr.splice(i, 1);
+          else if (arr.length < 2) arr.push(id);
+          else { arr.shift(); arr.push(id); }
+          renderTestPane();
+        },
         showTestsForProgramme(prog) {
           var tax = window.DEST_TAXONOMY;
           if (tax && tax.byProgramme[prog]) state.testDest = tax.byProgramme[prog];
+          state.testMode = 'single';
           setTab('test');
           renderTestPane();
         }
@@ -586,15 +599,25 @@ import { $, $$, fmt, escapeHTML, pct, debounce } from '../shared/utils.js';
           update();
         }));
 
-        // Program
-        $('#filterProgram').innerHTML = PROGRAMS.map(p => `
+        // Program — the 🧪 button opens that programme's Test rail card, and now
+        // also shows a live test-count (required + follow-up) for at-a-glance context.
+        $('#filterProgram').innerHTML = PROGRAMS.map(p => {
+          const destId = window.DEST_TAXONOMY && window.DEST_TAXONOMY.byProgramme[p];
+          let testBtn = '';
+          if (destId && window.MT && MT.testsForDest) {
+            const td = MT.testsForDest(destId);
+            const n = td ? td.counts.required + td.counts.followUp : 0;
+            testBtn = `<button type="button" class="mt-test-link" title="Show ${p} test requirements (${n} tests)" onclick="event.stopPropagation();VMP.showTestsForProgramme('${p}')">🧪 ${n}</button>`;
+          }
+          return `
     <label class="checkbox-row">
       <input type="checkbox" data-program="${p}" ${state.filters.programs.has(p) ? 'checked' : ''}/>
       <span>${p}</span>
       <span class="count">${fmt(byProgram[p] || 0)}</span>
-      ${(window.DEST_TAXONOMY && window.DEST_TAXONOMY.byProgramme[p]) ? `<button type="button" class="mt-test-link" title="Show ${p} test requirements" onclick="event.stopPropagation();VMP.showTestsForProgramme('${p}')">🧪</button>` : ''}
+      ${testBtn}
     </label>
-  `).join('');
+  `;
+        }).join('');
         $$('#filterProgram input').forEach(inp => inp.addEventListener('change', e => {
           const p = e.target.dataset.program;
           if (e.target.checked) state.filters.programs.add(p); else state.filters.programs.delete(p);
@@ -669,10 +692,22 @@ import { $, $$, fmt, escapeHTML, pct, debounce } from '../shared/utils.js';
         if (!c) { state.selected = null; renderDetail(); return; }
         const inCompare = state.compare.includes(c.id);
 
-        // Program table
+        // Program table — each test-covered programme row gets a compact "🧪 N tests →"
+        // jump link so the operator can see what applicants of that programme need without
+        // leaving the centre's detail pane.
+        const _tax = window.DEST_TAXONOMY;
         const progRows = c.programs.map(p => {
           const s = c.programStatuses[p] || c.status;
-          return `<tr><td>${escapeHTML(p)}</td><td><span class="pill pill-${STATUS_CLASS[s]}"><span class="dot"></span>${s}</span></td></tr>`;
+          const destId = _tax && _tax.byProgramme[p];
+          let testLink = '';
+          if (destId && window.MT && MT.testsForDest) {
+            const td = MT.testsForDest(destId);
+            if (td) {
+              const n = td.counts.required + td.counts.followUp;
+              testLink = ` <button type="button" class="prog-test-link" title="View ${p} test requirements" onclick="event.stopPropagation();VMP.showTestsForProgramme('${p}')">🧪 ${n} tests →</button>`;
+            }
+          }
+          return `<tr><td>${escapeHTML(p)}</td><td><span class="pill pill-${STATUS_CLASS[s]}"><span class="dot"></span>${s}</span>${testLink}</td></tr>`;
         }).join('') || '<tr><td colspan="2" style="color:var(--muted)">No programs flagged</td></tr>';
 
         // Validation info — choose pill text and colour based on validation status
@@ -874,49 +909,117 @@ import { $, $$, fmt, escapeHTML, pct, debounce } from '../shared/utils.js';
         return out;
       }
 
-      // Phase 2.1 — compact, single-destination test-requirements card for the
-      // Insights rail. Data is read live from the Test Requirements view (window.MT),
-      // so there is no duplicate copy of the test data.
+      // Phase 2.1 / 2.2 — test-requirements card for the rail Test tab.
+      // Two modes: 'single' (one destination, deep view + insights strip) and
+      // 'compare' (two destinations side-by-side). Data is read live from
+      // window.MT — no duplicate copy of the test data on this side.
       function renderTestCard() {
         if (!window.MT || !MT.testsForDest || !state.data) return '';
         const tax = window.DEST_TAXONOMY || { programmeByDest: {} };
-        const destId = state.testDest || 'AU';
-        const d = MT.testsForDest(destId);
-        if (!d) return '';
-        const isAD = destId === 'AD';
-        const prog = tax.programmeByDest[destId];
-        const nCentres = prog ? state.data.centres.filter(c => Array.isArray(c.programs) && c.programs.includes(prog)).length : 0;
+        const mode = state.testMode === 'compare' ? 'compare' : 'single';
         const iconFor = ic => ic === 'rad' ? '🔬' : ic === 'lab' ? '🧪' : '💉';
+        const dests = MT.destinations ? MT.destinations() : [];
 
-        // Chip labels read live from window.MT.destinations() so this never goes stale
-        // when a country is added/removed in tests/main.js.
-        const chips = (MT.destinations ? MT.destinations() : [])
-          .map(c => `<button class="tc-chip${c.id === destId ? ' active' : ''}" onclick="VMP.setTestDest('${c.id}')">${escapeHTML(c.name)}</button>`).join('');
+        const modeToggle = `<div class="tc-mode">
+          <button class="tc-mode-btn${mode === 'single' ? ' active' : ''}" onclick="VMP.setTestMode('single')">Single</button>
+          <button class="tc-mode-btn${mode === 'compare' ? ' active' : ''}" onclick="VMP.setTestMode('compare')">Compare</button>
+        </div>`;
 
-        const groups = d.groups.map(g => `<div class="tc-group">
-            <div class="tc-group-title">${iconFor(g.icon)} ${escapeHTML(g.cat)}</div>
-            ${g.tests.map(t => `<div class="tc-test"><span class="tc-test-name">${escapeHTML(t.name)}</span><span class="tc-badge ${t.status}">${t.status === 'req' ? 'Required' : 'Follow-up'}</span></div>`).join('')}
-          </div>`).join('');
+        if (mode === 'single') {
+          const destId = state.testDest || 'AU';
+          const d = MT.testsForDest(destId);
+          if (!d) return '';
+          const isAD = destId === 'AD';
+          const prog = tax.programmeByDest[destId];
+          const nCentres = prog ? state.data.centres.filter(c => Array.isArray(c.programs) && c.programs.includes(prog)).length : 0;
 
-        // Some destinations (Taiwan, Cook Islands) have test data but no empanelled
-        // centres on the map yet — no programme to link to, so skip the map button.
-        const centresBtn = prog
-          ? `<button class="tc-btn primary" onclick="bridgeToCentres('${destId}')">🗺️ ${isAD ? 'View WAFID centres' : 'View ' + fmt(nCentres) + ' centres'} on the map</button>`
-          : '';
-        const matrixBtn = `<button class="tc-btn" onclick="switchView('tests');MT.selectDestById('${destId}')">Compare in full matrix ↗</button>`;
-        const note = isAD
-          ? `<div class="tc-note">Abu Dhabi has no centres of its own — its applicants use WAFID-empanelled centres.</div>`
-          : !prog
-            ? `<div class="tc-note">No empanelled centres tracked yet for ${escapeHTML(d.name)} — test requirements only.</div>`
+          const chips = dests
+            .map(c => `<button class="tc-chip${c.id === destId ? ' active' : ''}" onclick="VMP.setTestDest('${c.id}')">${escapeHTML(c.name)}</button>`).join('');
+
+          const groups = d.groups.map(g => `<div class="tc-group">
+              <div class="tc-group-title">${iconFor(g.icon)} ${escapeHTML(g.cat)}</div>
+              ${g.tests.map(t => `<div class="tc-test"><span class="tc-test-name">${escapeHTML(t.name)}</span><span class="tc-badge ${t.status}">${t.status === 'req' ? 'Required' : 'Follow-up'}</span></div>`).join('')}
+            </div>`).join('');
+
+          // Insights strip — cross-destination context that the single-dest summary above doesn't give
+          const ins = MT.insights ? MT.insights(destId) : null;
+          const insightsStrip = ins ? `<div class="tc-insights">
+            <div class="tc-insight" title="Tests required by every one of the ${dests.length} destinations tracked"><b>${ins.universal}</b><span>universal</span></div>
+            <div class="tc-insight" title="Tests required only by this destination and no other"><b>${ins.unique}</b><span>unique</span></div>
+            <div class="tc-insight" title="Total tests tracked across all destinations"><b>${ins.total}</b><span>total tracked</span></div>
+          </div>` : '';
+
+          // Some destinations (Taiwan, Cook Islands) have test data but no empanelled
+          // centres on the map yet — no programme to link to, so skip the map button.
+          const centresBtn = prog
+            ? `<button class="tc-btn primary" onclick="bridgeToCentres('${destId}')">🗺️ ${isAD ? 'View WAFID centres' : 'View ' + fmt(nCentres) + ' centres'} on the map</button>`
             : '';
+          const matrixBtn = `<button class="tc-btn" onclick="switchView('tests');MT.selectDestById('${destId}')">Open in full matrix ↗</button>`;
+          const note = isAD
+            ? `<div class="tc-note">Abu Dhabi has no centres of its own — its applicants use WAFID-empanelled centres.</div>`
+            : !prog
+              ? `<div class="tc-note">No empanelled centres tracked yet for ${escapeHTML(d.name)} — test requirements only.</div>`
+              : '';
+
+          return `<div class="tc-card">
+            <div class="tc-head"><span class="tc-title">🧪 Test requirements</span>${modeToggle}</div>
+            <div class="tc-chips">${chips}</div>
+            <div class="tc-summary"><span class="tc-dest">${escapeHTML(d.name)}</span><span class="tc-counts"><b>${d.counts.required}</b> required${d.counts.followUp ? ` · <b>${d.counts.followUp}</b> follow-up` : ''}</span></div>
+            ${insightsStrip}
+            <div class="tc-groups">${groups}</div>
+            ${note}
+            <div class="tc-actions">${centresBtn}${matrixBtn}</div>
+          </div>`;
+        }
+
+        // ── Compare mode ── up to 2 destinations, side-by-side status badges
+        const sel = Array.isArray(state.testCompareDests) ? state.testCompareDests : [];
+        const chips = dests
+          .map(c => `<button class="tc-chip${sel.includes(c.id) ? ' active' : ''}" onclick="VMP.toggleCompareDest('${c.id}')">${escapeHTML(c.name)}</button>`).join('');
+
+        const badge = v => v === 1
+          ? '<span class="tc-cbadge req">Req</span>'
+          : v === 2
+            ? '<span class="tc-cbadge fu">FU</span>'
+            : '<span class="tc-cbadge nr">—</span>';
+
+        let body;
+        if (sel.length === 0) {
+          body = `<div class="tc-note">Pick 2 destinations above to compare their test requirements side by side.</div>`;
+        } else if (sel.length === 1) {
+          const one = MT.testsForDest(sel[0]);
+          body = `<div class="tc-note">${escapeHTML(one ? one.name : sel[0])} selected. Pick 1 more to compare, or switch to Single view.</div>`;
+        } else {
+          const cmp = MT.compareGroups(sel[0], sel[1]);
+          if (!cmp) {
+            body = '';
+          } else {
+            const rows = cmp.groups.map(g => `
+              <div class="tc-group-title">${iconFor(g.icon)} ${escapeHTML(g.cat)}</div>
+              ${g.tests.map(t => `<div class="tc-crow">
+                <span class="tc-cname">${escapeHTML(t.name)}</span>
+                <span class="tc-ccol">${badge(t.a)}</span>
+                <span class="tc-ccol">${badge(t.b)}</span>
+              </div>`).join('')}
+            `).join('');
+            body = `<div class="tc-compare">
+              <div class="tc-crow tc-chead">
+                <span class="tc-cname">Test</span>
+                <span class="tc-ccol">${escapeHTML(cmp.a.name)}</span>
+                <span class="tc-ccol">${escapeHTML(cmp.b.name)}</span>
+              </div>
+              ${rows}
+            </div>`;
+          }
+        }
+
+        const matrixBtn = `<button class="tc-btn" onclick="switchView('tests')">Open full matrix ↗</button>`;
 
         return `<div class="tc-card">
-          <div class="tc-head"><span class="tc-title">🧪 Test requirements</span></div>
+          <div class="tc-head"><span class="tc-title">🧪 Test requirements</span>${modeToggle}</div>
           <div class="tc-chips">${chips}</div>
-          <div class="tc-summary"><span class="tc-dest">${d.flag} ${escapeHTML(d.name)}</span><span class="tc-counts"><b>${d.counts.required}</b> required${d.counts.followUp ? ` · <b>${d.counts.followUp}</b> follow-up` : ''}</span></div>
-          <div class="tc-groups">${groups}</div>
-          ${note}
-          <div class="tc-actions">${centresBtn}${matrixBtn}</div>
+          ${body}
+          <div class="tc-actions">${matrixBtn}</div>
         </div>`;
       }
 
